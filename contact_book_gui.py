@@ -2,106 +2,58 @@ import tkinter as tk
 from tkinter import messagebox
 import os
 
-# file to store contacts
-CONTACT_FILE = "contacts.txt"
-
-# load contacts from file
-def load_contacts():
-    data = {}
-    if os.path.exists(CONTACT_FILE):
-        with open(CONTACT_FILE, "r") as f:
-            for line in f:
-                parts = line.strip().split("|")
-                if len(parts) == 3:
-                    data[parts[0]] = {"phone": parts[1], "email": parts[2]}
-    return data
-
-# save contacts to file
-def save_contacts():
-    with open(CONTACT_FILE, "w") as f:
-        for name, info in contacts.items():
-            f.write(f"{name}|{info['phone']}|{info['email']}\n")
-
-# add a contact
 def add_contact():
-    name = entry_name.get().strip()
-    phone = entry_phone.get().strip()
-    email = entry_email.get().strip()
+    name = entry_name.get()
+    phone = entry_phone.get()
+    email = entry_email.get()
+    address = entry_address.get()
+    if name and phone:
+        with open("contacts.txt", "a") as f:
+            f.write(f"{name},{phone},{email},{address}\n")
+        messagebox.showinfo("Success", "Contact added successfully")
+        entry_name.delete(0, tk.END)
+        entry_phone.delete(0, tk.END)
+        entry_email.delete(0, tk.END)
+        entry_address.delete(0, tk.END)
+    else:
+        messagebox.showwarning("Error", "Name and Phone are required")
 
-    if name == "" or phone == "" or email == "":
-        messagebox.showerror("Error", "All fields must be filled")
+def view_contacts():
+    if not os.path.exists("contacts.txt"):
+        messagebox.showinfo("Contacts", "No contacts found")
         return
+    with open("contacts.txt", "r") as f:
+        data = f.readlines()
+    if not data:
+        messagebox.showinfo("Contacts", "No contacts found")
+    else:
+        contacts = ""
+        for line in data:
+            name, phone, email, address = line.strip().split(",")
+            contacts += f"Name: {name}, Phone: {phone}, Email: {email}, Address: {address}\n"
+        messagebox.showinfo("Contacts", contacts)
 
-    contacts[name] = {"phone": phone, "email": email}
-    save_contacts()
-    messagebox.showinfo("Success", "Contact saved successfully!")
-    entry_name.delete(0, tk.END)
-    entry_phone.delete(0, tk.END)
-    entry_email.delete(0, tk.END)
-    display_contacts()
-
-# show all contacts
-def display_contacts():
-    listbox.delete(0, tk.END)
-    for name, info in contacts.items():
-        listbox.insert(tk.END, f"{name} | {info['phone']} | {info['email']}")
-
-# search a contact
-def search_contact():
-    q = entry_search.get().strip().lower()
-    listbox.delete(0, tk.END)
-    for name, info in contacts.items():
-        if q in name.lower():
-            listbox.insert(tk.END, f"{name} | {info['phone']} | {info['email']}")
-
-# delete a contact
-def delete_contact():
-    selected = listbox.get(tk.ACTIVE)
-    if not selected:
-        messagebox.showerror("Error", "Select a contact first")
-        return
-    name = selected.split(" | ")[0]
-    if name in contacts:
-        del contacts[name]
-        save_contacts()
-        messagebox.showinfo("Deleted", "Contact removed")
-        display_contacts()
-
-# main gui
 root = tk.Tk()
 root.title("Contact Book")
-root.geometry("550x400")
+root.geometry("400x400")
 
-contacts = load_contacts()
+tk.Label(root, text="Name").pack()
+entry_name = tk.Entry(root)
+entry_name.pack()
 
-# name input
-tk.Label(root, text="Name:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-entry_name = tk.Entry(root, width=30)
-entry_name.grid(row=0, column=1, padx=10, pady=5)
+tk.Label(root, text="Phone").pack()
+entry_phone = tk.Entry(root)
+entry_phone.pack()
 
-# phone input
-tk.Label(root, text="Phone:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-entry_phone = tk.Entry(root, width=30)
-entry_phone.grid(row=1, column=1, padx=10, pady=5)
+tk.Label(root, text="Email").pack()
+entry_email = tk.Entry(root)
+entry_email.pack()
 
-# email input
-tk.Label(root, text="Email:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-entry_email = tk.Entry(root, width=30)
-entry_email.grid(row=2, column=1, padx=10, pady=5)
+tk.Label(root, text="Address").pack()
+entry_address = tk.Entry(root)
+entry_address.pack()
 
-# buttons
-tk.Button(root, text="Add", command=add_contact, bg="green", fg="white").grid(row=3, column=0, padx=10, pady=10)
-tk.Button(root, text="Delete", command=delete_contact, bg="red", fg="white").grid(row=3, column=1, padx=10, pady=10)
+tk.Button(root, text="Add Contact", command=add_contact).pack(pady=5)
+tk.Button(root, text="View Contacts", command=view_contacts).pack(pady=5)
 
-# search
-tk.Label(root, text="Search:").grid(row=4, column=0, padx=10, pady=5, sticky="w")
-entry_search = tk.Entry(root, width=30)
-entry_search.grid(row=4, column=1, padx=10, pady=5)
-tk.Button(root, text="Search", command=search_contact, bg="blue", fg="white").grid(row=4, column=2, padx=10, pady=5)
-
-# listbox
-listbox = tk.Listbox(root, width=70, height=12)
-listbox.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
-
-display_contacts()
 root.mainloop()
